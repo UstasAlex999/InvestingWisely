@@ -8,12 +8,30 @@ import xlsxwriter
 import time
 from nltk import flatten
 from pandas.core.common import flatten
+import xlrd
 
-#Ticker = input ('Enter ticker:')
+loc = ("/Users/igortestoedov/DEV/InvestingWisely/InvestingWisely/Russell_2000.xls")
 
-#df_metrics = pd.DataFrame('Ticker':0,'Year':0, 'TotalRevenueChangeYtY':0,'ROIC':0,'EPS Growth':0,'Total Shareholders Equity Growth':0, 'Free Cash Flow Change':0)
+wb = xlrd.open_workbook(loc)
+sheet = wb.sheet_by_index(0)
 
-OutTicker = ['IBM']
+#print("{0} {1} {2}".format(sheet.name, sheet.nrows, sheet.ncols))
+
+OutTicker = []
+
+TickersFromRussell2000 = []
+
+for item1 in range(sheet.nrows):
+
+    TickersFromRussell2000.append(sheet.cell_value(item1, 1))
+    #print(sheet.cell_value(item1, 1))
+
+
+
+#print(len(TickersFromRussell2000))
+
+
+
 
 
 
@@ -65,6 +83,8 @@ def GetAndWriteToPandas (Ticker):
 
 
     xx = len(DataCashFlow['annualReports'])
+    
+    #print(xx)
 
 
     #print('Company','|','Year','|','ROIC','|', 'Revenue growth YtY', '|', "EPS Growth", '|','Total Shareholders Equity', '|', 'Free Cash Flow Change' )
@@ -78,19 +98,62 @@ def GetAndWriteToPandas (Ticker):
         OperatingCashflow = float((DataCashFlow['annualReports'][i]['operatingCashflow']))
         FreeCashFlow = OperatingCashflow - CapitalExpenditures
         OCF = float(DataCashFlow['annualReports'][i]['operatingCashflow'])
+        
+        if DataIncomeStatement['annualReports'][i]['totalRevenue'] == 'None':
+            DataIncomeStatement['annualReports'][i]['totalRevenue'] = -1
+            print('no data totalRevenue') 
+        
         TotalRevenue = float((DataIncomeStatement['annualReports'][i]['totalRevenue']))
+        
+        if DataIncomeStatement['annualReports'][i]['costOfRevenue'] == 'None':
+            DataIncomeStatement['annualReports'][i]['costOfRevenue'] = -1
+            print('no data costOfRevenue') 
+        
         CostOfRevenue = float((DataIncomeStatement['annualReports'][i]['costOfRevenue']))
+        
         MyGrossProfit = TotalRevenue - CostOfRevenue
         GrossProfit = float((DataIncomeStatement['annualReports'][i]['grossProfit']))
+        
+        if DataIncomeStatement['annualReports'][i]['incomeBeforeTax'] == 'None':
+            DataIncomeStatement['annualReports'][i]['incomeBeforeTax'] = -1
+            print('no data incomeBeforeTax')
+
+        
         IncomeBeforeTax = float((DataIncomeStatement['annualReports'][i]['incomeBeforeTax']))
+        
+        if DataIncomeStatement['annualReports'][i]['operatingIncome'] == 'None':
+            DataIncomeStatement['annualReports'][i]['operatingIncome'] = -1
+            print('no data operatingIncome')
+        
         OperatingIncome = float((DataIncomeStatement['annualReports'][i]['operatingIncome']))
+        
+        if DataIncomeStatement['annualReports'][i]['incomeTaxExpense'] == 'None':
+            DataIncomeStatement['annualReports'][i]['incomeTaxExpense'] = -1
+            print('no data incomeTaxExpense')
+
+
         IncomeTaxExpense = float((DataIncomeStatement['annualReports'][i]['incomeTaxExpense']))
         Tax_Rate = IncomeTaxExpense/IncomeBeforeTax
         Tax_Rate_Percentage = "{:.0%}".format(Tax_Rate)
         NOPAT=OperatingIncome*(1-Tax_Rate)    
      
+        #print(DataBalanceSheet['annualReports'][i]['shortTermDebt'])
+        if DataBalanceSheet['annualReports'][i]['shortTermDebt'] == 'None':
+            DataBalanceSheet['annualReports'][i]['shortTermDebt'] = -1
+            print('no data shortTermDebt')
+
         ShortTermDebt = float((DataBalanceSheet['annualReports'][i]['shortTermDebt']))
+
+        if DataBalanceSheet['annualReports'][i]['longTermDebt'] == 'None':
+            DataBalanceSheet['annualReports'][i]['longTermDebt'] = -1
+            print('no data longTermDebt')
+
         LongTermDebt = float((DataBalanceSheet['annualReports'][i]['longTermDebt']))
+
+        if DataBalanceSheet['annualReports'][i]['totalShareholderEquity'] == 'None':
+            DataBalanceSheet['annualReports'][i]['totalShareholderEquity'] = -1
+            print('no data totalShareholderEquity')
+
         TotalShareholderEquity = float((DataBalanceSheet['annualReports'][i]['totalShareholderEquity']))
    
         InvestedCapital = ShortTermDebt + LongTermDebt + TotalShareholderEquity
@@ -189,8 +252,18 @@ ListOFEPSGrowthFinal = []
 ListOFTotalShareholderEquityGrowthFinal = []
 ListOFFreeCashFlowGrowthFinal=[]
 
+
+
+OutTicker = []
+
+for i in range (10):
+    
+    OutTicker.append(TickersFromRussell2000[i])
+
+
+
 for item in OutTicker:
-    #time.sleep(60)
+    time.sleep(60)
     ListOfTickers,ListOfYears,ListOfTotalSalesGrowth,ListOfROIC,ListOFEPSGrowth,ListOFTotalShareholderEquityGrowth,ListOFFreeCashFlowGrowth = (GetAndWriteToPandas(item))
     ListOfTickersFinal.append(ListOfTickers)
     ListOfYearsFinal.append(ListOfYears)
@@ -220,8 +293,10 @@ ListOFFreeCashFlowGrowthFinalFlattened = list(flatten(ListOFFreeCashFlowGrowthFi
 df = DataFrame({'Ticker':ListOfTickersFinalFlattened,'Fiscal Year':ListOfYearsFinalFlattened,'SalesGrthYtY':ListOfTotalSalesGrowthFinalFlattened,'ROIC':ListOfROICFinalFlattened,'EPS GrthYtY':ListOFEPSGrowthFinalFlattened,'Equity Grth YtY':ListOFTotalShareholderEquityGrowthFinalFlattened,'FCF YtY':ListOFFreeCashFlowGrowthFinalFlattened})
 
 
+df.to_excel('/Users/igortestoedov/DEV/InvestingWisely/InvestingWisely/Russell_2000_growth_rates.xls')
+
 #print(xx)
 #print(flattened_list)
 
-print(df.head(12))
+print(df.head(14))
 
