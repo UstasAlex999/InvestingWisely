@@ -56,21 +56,20 @@ def GetAndWriteToPandas (Ticker):
     url3 = 'https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol='+ str(Ticker)+'&apikey=8JB4V49M6EBPR459'
     r3 = requests.get(url3)
     DataBalanceSheet = r3.json()
+    #print(DataBalanceSheet)
 
     #print(DataBalanceSheet)
 
-    url4 = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol='+ str(Ticker)+'M&apikey=8JB4V49M6EBPR459'
+    url4 = 'https://www.alphavantage.co/query?function=OVERVIEW&symbol='+ str(Ticker)+'&apikey=8JB4V49M6EBPR459'
     r4 = requests.get(url4)
     DataOverview = r4.json()
-
-    #print(DataOverview)
+    print(DataOverview)
 
     ListOfTotalSales = []
     ListOfROIC = []
     ListOFEPS =[]
     ListOFTotalShareholderEquity = []
     ListOFFreeCashFlow = []
-
     ListOfTickers = []
     ListOfYears = []
     ListOfTotalSalesGrowth = []
@@ -78,36 +77,50 @@ def GetAndWriteToPandas (Ticker):
     ListOFEPSGrowth =[]
     ListOFTotalShareholderEquityGrowth = []
     ListOFFreeCashFlowGrowth = []
-
-
-
-
+    listOFErrors = []
+    ListOFErrorsTicker = []
+    ListOfErrorTickerFinal = []
+    ListOFSector = []
+    ListOFIndustry = []
+    
     xx = len(DataCashFlow['annualReports'])
     
-    #print(xx)
-
+    print(xx)
 
     #print('Company','|','Year','|','ROIC','|', 'Revenue growth YtY', '|', "EPS Growth", '|','Total Shareholders Equity', '|', 'Free Cash Flow Change' )
+    
+    # I use this loop to calculate ROIC, and add to Lists numbers which i use later to calculate growth rates
 
     for i in range (xx):
+
         NetIncome = float((DataIncomeStatement['annualReports'][i]['netIncome']))
         CommonStockSharesOutstanding = int((DataBalanceSheet['annualReports'][i]['commonStockSharesOutstanding']))
         EPS = NetIncome/CommonStockSharesOutstanding
+        
         TotalShareholderEquity = float((DataBalanceSheet['annualReports'][i]['totalShareholderEquity']))
         CapitalExpenditures = float((DataCashFlow['annualReports'][i]['capitalExpenditures']))
         OperatingCashflow = float((DataCashFlow['annualReports'][i]['operatingCashflow']))
         FreeCashFlow = OperatingCashflow - CapitalExpenditures
-        OCF = float(DataCashFlow['annualReports'][i]['operatingCashflow'])
+     
         
         if DataIncomeStatement['annualReports'][i]['totalRevenue'] == 'None':
             DataIncomeStatement['annualReports'][i]['totalRevenue'] = -1
-            print('no data totalRevenue') 
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
+
         
         TotalRevenue = float((DataIncomeStatement['annualReports'][i]['totalRevenue']))
         
         if DataIncomeStatement['annualReports'][i]['costOfRevenue'] == 'None':
             DataIncomeStatement['annualReports'][i]['costOfRevenue'] = -1
-            print('no data costOfRevenue') 
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok') 
         
         CostOfRevenue = float((DataIncomeStatement['annualReports'][i]['costOfRevenue']))
         
@@ -116,21 +129,31 @@ def GetAndWriteToPandas (Ticker):
         
         if DataIncomeStatement['annualReports'][i]['incomeBeforeTax'] == 'None':
             DataIncomeStatement['annualReports'][i]['incomeBeforeTax'] = -1
-            print('no data incomeBeforeTax')
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
 
         
         IncomeBeforeTax = float((DataIncomeStatement['annualReports'][i]['incomeBeforeTax']))
         
         if DataIncomeStatement['annualReports'][i]['operatingIncome'] == 'None':
             DataIncomeStatement['annualReports'][i]['operatingIncome'] = -1
-            print('no data operatingIncome')
-        
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
         OperatingIncome = float((DataIncomeStatement['annualReports'][i]['operatingIncome']))
         
         if DataIncomeStatement['annualReports'][i]['incomeTaxExpense'] == 'None':
             DataIncomeStatement['annualReports'][i]['incomeTaxExpense'] = -1
-            print('no data incomeTaxExpense')
-
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
 
         IncomeTaxExpense = float((DataIncomeStatement['annualReports'][i]['incomeTaxExpense']))
         Tax_Rate = IncomeTaxExpense/IncomeBeforeTax
@@ -140,19 +163,31 @@ def GetAndWriteToPandas (Ticker):
         #print(DataBalanceSheet['annualReports'][i]['shortTermDebt'])
         if DataBalanceSheet['annualReports'][i]['shortTermDebt'] == 'None':
             DataBalanceSheet['annualReports'][i]['shortTermDebt'] = -1
-            print('no data shortTermDebt')
+            print('no data')
+            listOFErrors.append('No Data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
 
         ShortTermDebt = float((DataBalanceSheet['annualReports'][i]['shortTermDebt']))
 
         if DataBalanceSheet['annualReports'][i]['longTermDebt'] == 'None':
             DataBalanceSheet['annualReports'][i]['longTermDebt'] = -1
-            print('no data longTermDebt')
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
 
         LongTermDebt = float((DataBalanceSheet['annualReports'][i]['longTermDebt']))
 
         if DataBalanceSheet['annualReports'][i]['totalShareholderEquity'] == 'None':
             DataBalanceSheet['annualReports'][i]['totalShareholderEquity'] = -1
-            print('no data totalShareholderEquity')
+            listOFErrors.append('No Data')
+            print('no data')
+        else:
+            listOFErrors.append('ok')
+            print('ok')
 
         TotalShareholderEquity = float((DataBalanceSheet['annualReports'][i]['totalShareholderEquity']))
    
@@ -179,6 +214,21 @@ def GetAndWriteToPandas (Ticker):
             ListOFEPS.append(1)
             ListOFTotalShareholderEquity.append(1)
             ListOFFreeCashFlow.append(1)
+            #listOFErrors.append(1)
+
+        print(listOFErrors)
+        
+        result = listOFErrors.count('ok') == len(listOFErrors)
+        #print(result)
+        ListOFErrorsTicker.append(result)
+        listOFErrors.clear()
+    
+    result2 =  ListOFErrorsTicker.count(True) == len(ListOFErrorsTicker)
+    
+    #print(result2)
+    #print(len(listOFErrors))    
+        
+        
     
 
 
@@ -216,10 +266,13 @@ def GetAndWriteToPandas (Ticker):
     
         ListOfTotalSalesGrowth.append(TotalRevenuePercentageYtY)
         ListOfTickers.append(DataIncomeStatement['symbol'])
+        ListOFIndustry.append(DataOverview['Industry'])
+        ListOFSector.append(DataOverview['Sector'])
         ListOfYears.append(DataCashFlow['annualReports'][i]['fiscalDateEnding'])
         ListOFEPSGrowth.append(TotalEPSChangePercentage)
         ListOFTotalShareholderEquityGrowth.append(TotalShareholderEquityChangePercentage)
         ListOFFreeCashFlowGrowth.append(ListOFFreeCashFlowChangePercentage)
+        ListOfErrorTickerFinal.append(result2)
 
     
 
@@ -229,52 +282,75 @@ def GetAndWriteToPandas (Ticker):
     ListOfROIC.pop()
     ListOfROIC.pop()
     ListOfTickers.pop()
+    ListOFSector.pop()
+    ListOFIndustry.pop()
     ListOfTotalSalesGrowth.pop()
     ListOfYears.pop()
     ListOFEPSGrowth.pop()
     ListOFTotalShareholderEquityGrowth.pop()
     ListOFFreeCashFlowGrowth.pop()
+    ListOfErrorTickerFinal.pop()
+    
 
     
 
     #df = DataFrame.append({'Ticker':ListOfTickers,'Year':ListOfYears, 'TotalRevenueChangeYtY':ListOfTotalSalesGrowth,'ROIC':ListOfROIC,'EPS Growth':ListOFEPSGrowth,'Total Shareholders Equity Growth':ListOFTotalShareholderEquityGrowth, 'Free Cash Flow Change':ListOFFreeCashFlowGrowth})
     #print(df.head(5))
     
-    return ListOfTickers,ListOfYears,ListOfTotalSalesGrowth,ListOfROIC,ListOFEPSGrowth,ListOFTotalShareholderEquityGrowth,ListOFFreeCashFlowGrowth
+    return ListOFIndustry, ListOFSector,ListOfTickers,ListOfYears,ListOfTotalSalesGrowth,ListOfROIC,ListOFEPSGrowth,ListOFTotalShareholderEquityGrowth,ListOFFreeCashFlowGrowth, ListOfErrorTickerFinal 
 
 
  
 ListOfTickersFinal = []
+ListOfSectorFinal =[]
+ListOFIndustryFinal =[]
 ListOfYearsFinal = []
 ListOfTotalSalesGrowthFinal = []
 ListOfROICFinal = []
 ListOFEPSGrowthFinal = []
 ListOFTotalShareholderEquityGrowthFinal = []
 ListOFFreeCashFlowGrowthFinal=[]
-
-
+ListOFErrorsTickerFinal2 = []
 
 OutTicker = []
 
-for i in range (10):
+for i in range (30):
     
     OutTicker.append(TickersFromRussell2000[i])
 
 
 
 for item in OutTicker:
-    time.sleep(60)
-    ListOfTickers,ListOfYears,ListOfTotalSalesGrowth,ListOfROIC,ListOFEPSGrowth,ListOFTotalShareholderEquityGrowth,ListOFFreeCashFlowGrowth = (GetAndWriteToPandas(item))
-    ListOfTickersFinal.append(ListOfTickers)
-    ListOfYearsFinal.append(ListOfYears)
-    ListOfTotalSalesGrowthFinal.append(ListOfTotalSalesGrowth)
-    ListOfROICFinal.append(ListOfROIC)
-    ListOFEPSGrowthFinal.append(ListOFEPSGrowth)
-    ListOFTotalShareholderEquityGrowthFinal.append(ListOFTotalShareholderEquityGrowth)
-    ListOFFreeCashFlowGrowthFinal.append(ListOFFreeCashFlowGrowth)
+    
+    try:
+        ListOFIndustry, ListOFSector, ListOfTickers,ListOfYears,ListOfTotalSalesGrowth,ListOfROIC,ListOFEPSGrowth,ListOFTotalShareholderEquityGrowth,ListOFFreeCashFlowGrowth,result = (GetAndWriteToPandas(item))
+        time.sleep(60)
+        ListOFIndustryFinal.append(ListOFIndustry)
+        ListOfSectorFinal.append(ListOFSector)
+        ListOfTickersFinal.append(ListOfTickers)
+        ListOfYearsFinal.append(ListOfYears)
+        ListOfTotalSalesGrowthFinal.append(ListOfTotalSalesGrowth)
+        ListOfROICFinal.append(ListOfROIC)
+        ListOFEPSGrowthFinal.append(ListOFEPSGrowth)
+        ListOFTotalShareholderEquityGrowthFinal.append(ListOFTotalShareholderEquityGrowth)
+        ListOFFreeCashFlowGrowthFinal.append(ListOFFreeCashFlowGrowth)
+        ListOFErrorsTickerFinal2.append(result)
+    except:
+        print('FALSE')
+        ListOFIndustryFinal.append('FALSE')
+        ListOfSectorFinal.append('FALSE')
+        ListOfTickersFinal.append('FALSE')
+        ListOfYearsFinal.append('FALSE')
+        ListOfTotalSalesGrowthFinal.append('FALSE')
+        ListOfROICFinal.append('FALSE')
+        ListOFEPSGrowthFinal.append('FALSE')
+        ListOFTotalShareholderEquityGrowthFinal.append('FALSE')
+        ListOFFreeCashFlowGrowthFinal.append('FALSE')
+        ListOFErrorsTickerFinal2.append('FALSE')
     
 
-
+ListOFIndustryFinalFlattened = list(flatten(ListOFIndustryFinal))
+ListOfSectorFinalFlattened = list(flatten(ListOfSectorFinal))
 ListOfTickersFinalFlattened = list(flatten(ListOfTickersFinal))
 ListOfYearsFinalFlattened = list(flatten(ListOfYearsFinal))
 ListOfTotalSalesGrowthFinalFlattened = list(flatten(ListOfTotalSalesGrowthFinal))
@@ -282,15 +358,17 @@ ListOfROICFinalFlattened = list(flatten(ListOfROICFinal))
 ListOFEPSGrowthFinalFlattened = list(flatten(ListOFEPSGrowthFinal))
 ListOFTotalShareholderEquityGrowthFinalFlattened = list(flatten(ListOFTotalShareholderEquityGrowthFinal))
 ListOFFreeCashFlowGrowthFinalFlattened = list(flatten(ListOFFreeCashFlowGrowthFinal))
+ListOFErrorsTickerFinal2Flattened = list(flatten(ListOFErrorsTickerFinal2))
 
+#print(ListOFErrorsTickerFinal,ListOfTickersFinalFlattened)
 
 
 
 #print(ListOfTickersFinalFlattened)
-#print(ListOFFreeCashFlowGrowthFinalFlattened)
+#print(ListOFFreeCashFlowGrowthFinalFlattened,ListOFErrorsTickerFinal2Flattened)
 
 
-df = DataFrame({'Ticker':ListOfTickersFinalFlattened,'Fiscal Year':ListOfYearsFinalFlattened,'SalesGrthYtY':ListOfTotalSalesGrowthFinalFlattened,'ROIC':ListOfROICFinalFlattened,'EPS GrthYtY':ListOFEPSGrowthFinalFlattened,'Equity Grth YtY':ListOFTotalShareholderEquityGrowthFinalFlattened,'FCF YtY':ListOFFreeCashFlowGrowthFinalFlattened})
+df = DataFrame({'Industry':ListOFIndustryFinalFlattened, 'Sector':ListOfSectorFinalFlattened,'Ticker':ListOfTickersFinalFlattened,'Fiscal Year':ListOfYearsFinalFlattened,'SalesGrthYtY':ListOfTotalSalesGrowthFinalFlattened,'ROIC':ListOfROICFinalFlattened,'EPS GrthYtY':ListOFEPSGrowthFinalFlattened,'Equity Grth YtY':ListOFTotalShareholderEquityGrowthFinalFlattened,'FCF YtY':ListOFFreeCashFlowGrowthFinalFlattened,'Error':ListOFErrorsTickerFinal2Flattened})
 
 
 df.to_excel('/Users/igortestoedov/DEV/InvestingWisely/InvestingWisely/Russell_2000_growth_rates.xls')
